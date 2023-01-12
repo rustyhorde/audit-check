@@ -12,6 +12,7 @@ use check::{
     rustc::{check_rustc_version, MSRV},
 };
 use rustc_version::version_meta;
+use std::env;
 
 mod check;
 
@@ -19,6 +20,9 @@ fn main() -> Result<()> {
     if check_rustc_version(version_meta()?)? {
         if !check_audit("cargo audit --version")? {
             // TODO: Install 'cargo-audit'
+            if let Ok(deny) = env::var("INPUTS_DENY") {
+                println!("DENY: {deny}");
+            }
         }
         Ok(())
     } else {
