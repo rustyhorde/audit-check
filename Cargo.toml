@@ -1,0 +1,17 @@
+[package]
+authors = ["Jason Ozias <jason.g.ozias@gmail.com>"]
+categories = ["development-tools"]
+description = "Github Action to run 'cargo audit' on your Rust project"
+documentation = "https://docs.rs/audit-check"
+edition = "2021"
+homepage = "https://github.com/rustyhorde/audit-check"
+keywords = ["cargo", "audit", "github", "actions"]
+license = "MIT OR Apache-2.0"
+name = "audit-check"
+readme = "README.md"
+repository = "https://github.com/rustyhorde/audit-check"
+version = "0.1.0"
+
+[dependencies]
+anyhow = "1.0.68"
+rustc_version = "0.4.0"
