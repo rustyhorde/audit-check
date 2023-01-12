@@ -1,0 +1,12 @@
+name: 'cargo-audit-check'
+description: 'Run cargo audit on your project'
+inputs:
+  deny:
+    description: 'exit with an error on: warnings (any), unmaintained, unsound, yanked'
+    required: false
+    default: 'warnings'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - ${{ inputs.deny }}
