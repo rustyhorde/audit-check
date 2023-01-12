@@ -20,6 +20,7 @@ fn main() -> Result<()> {
     if check_rustc_version(version_meta()?)? {
         if !check_audit("cargo audit --version")? {
             // TODO: Install 'cargo-audit'
+            println!("Installing 'cargo-audit'");
             if let Ok(deny) = env::var("INPUTS_DENY") {
                 println!("DENY: {deny}");
             }
