@@ -116,7 +116,7 @@ struct Resp {
 
 async fn create_issue(config: Config) -> Result<()> {
     let token = config.token;
-    let action_repo = config.action_repo;
+    let owner_repo = config.owner_repo;
 
     let mut headers = HeaderMap::new();
     let _old = headers.insert(
@@ -132,7 +132,7 @@ async fn create_issue(config: Config) -> Result<()> {
         .default_headers(headers)
         .build()?;
 
-    let url = format!("https://api.github.com/repos/{action_repo}/issues");
+    let url = format!("https://api.github.com/repos/{owner_repo}/issues");
     info!("Posting to '{url}'");
     let issue = Issue {
         title: "Test Issue 2".to_string(),

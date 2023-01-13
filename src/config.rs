@@ -15,7 +15,7 @@ pub(crate) struct Config {
     pub(crate) token: String,
     pub(crate) deny: String,
     pub(crate) level: Level,
-    pub(crate) action_repo: String,
+    pub(crate) owner_repo: String,
     pub(crate) create_issue: bool,
 }
 
@@ -23,7 +23,7 @@ impl Config {
     pub(crate) fn from_env() -> Result<Self> {
         // Error here as this is required, the others have defaults.
         let token = env::var("INPUT_TOKEN")?;
-        let action_repo = env::var("GITHUB_ACTION_REPOSITORY")?;
+        let owner_repo = env::var("GITHUB_REPOSITORY")?;
         let deny = input_deny();
         let level = Level::from_str(&input_level())?;
         let create_issue = str::parse::<bool>(&input_create_issue())?;
@@ -32,7 +32,7 @@ impl Config {
             token,
             deny,
             level,
-            action_repo,
+            owner_repo,
             create_issue,
         })
     }

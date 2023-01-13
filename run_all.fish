@@ -14,4 +14,4 @@ cd ..; and \
 sudo chown -R $USER:$USER target/; and \
 cp target/x86_64-unknown-linux-musl/release/audit-check binary/; and \
 docker build -t ozias/audit-check:latest .; and \
-docker run -e INPUT_TOKEN -e GITHUB_ACTION_REPOSITORY -v cargo-cache:/root/.cargo/registry -v (pwd):/volume -w=/volume --rm -t ozias/audit-check:latest
+docker run -e INPUT_TOKEN -e GITHUB_REPOSITORY -v cargo-cache:/root/.cargo/registry -v (pwd):/volume -w=/volume --rm -t ozias/audit-check:latest
