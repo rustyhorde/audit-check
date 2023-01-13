@@ -7,6 +7,7 @@
 // modified, or distributed except according to those terms.
 
 use anyhow::Result;
+use std::str::FromStr;
 use time::format_description::well_known::Iso8601;
 use tracing::{metadata::LevelFilter, Level};
 use tracing_subscriber::{
@@ -16,13 +17,14 @@ use tracing_subscriber::{
     util::SubscriberInitExt,
 };
 
-pub(crate) fn initialize() -> Result<()> {
+pub(crate) fn initialize(level: String) -> Result<()> {
+    let level = Level::from_str(&level)?;
     let format = fmt::layer()
         .compact()
         .with_level(true)
         .with_ansi(true)
         .with_target(false)
         .with_timer(UtcTime::new(Iso8601::DEFAULT));
-    let filter_layer = LevelFilter::from(Level::INFO);
+    let filter_layer = LevelFilter::from(level);
     Ok(registry().with(format).with(filter_layer).try_init()?)
 }

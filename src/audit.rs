@@ -17,10 +17,11 @@ use std::{
 
 use crate::{error::AuditCheckError, utils::handle_join_error};
 
-pub(crate) fn audit(tx: Sender<String>, tx_code: Sender<i32>) -> Result<()> {
+pub(crate) fn audit(deny: String, tx: Sender<String>, tx_code: Sender<i32>) -> Result<()> {
+    let command = format!("cargo audit -D{deny}");
     let mut cmd = std::process::Command::new("sh");
     let _ = cmd.arg("-c");
-    let _ = cmd.arg("cargo audit");
+    let _ = cmd.arg(command);
     let _ = cmd.stdout(Stdio::piped());
     let _ = cmd.stderr(Stdio::piped());
 

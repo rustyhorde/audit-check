@@ -26,13 +26,17 @@ use std::{
 use tracing::info;
 
 pub(crate) fn run() -> Result<()> {
-    if let Ok(deny) = env::var("INPUT_DENY") {
-        info!("DENY: {deny}");
-    }
-    if let Ok(level) = env::var("INPUT_LEVEL") {
-        info!("LEVEL: {level}");
-    }
-    initialize()?;
+    let deny = if let Ok(deny) = env::var("INPUT_DENY") {
+        deny
+    } else {
+        "warnings".to_string()
+    };
+    let level = if let Ok(level) = env::var("INPUT_LEVEL") {
+        level
+    } else {
+        "INFO".to_string()
+    };
+    initialize(level)?;
     if check_rustc_version(&version_meta()?)? {
         info!("rustc version check successful");
         match check_audit("cargo audit --version") {
@@ -45,7 +49,7 @@ pub(crate) fn run() -> Result<()> {
                     let (tx_code, rx_code) = channel();
 
                     // start the threads
-                    let audit_handle = thread::spawn(move || audit(tx_stdout, tx_code));
+                    let audit_handle = thread::spawn(move || audit(deny, tx_stdout, tx_code));
                     let rx_handle = thread::spawn(move || receive_stdout(&rx_stdout));
                     let rx_code_handle = thread::spawn(move || receive_code(&rx_code));
 
