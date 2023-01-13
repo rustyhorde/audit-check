@@ -23,6 +23,8 @@ where
     let _ = cmd.stderr(Stdio::piped());
 
     let out = cmd.output()?;
+    println!("stdout: {}", String::from_utf8_lossy(&out.stdout));
+    println!("stderr: {}", String::from_utf8_lossy(&out.stderr));
     Ok(out.status.success())
 }
 
