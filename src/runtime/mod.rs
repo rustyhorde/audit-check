@@ -127,10 +127,7 @@ async fn create_issue(config: Config) -> Result<()> {
         "X-GitHub-Api-Version",
         HeaderValue::from_static("2022-11-28"),
     );
-    let client = Client::builder()
-        .brotli(true)
-        .default_headers(headers)
-        .build()?;
+    let client = Client::builder().default_headers(headers).build()?;
 
     let url = format!("https://api.github.com/repos/{owner_repo}/issues");
     info!("Posting to '{url}'");
