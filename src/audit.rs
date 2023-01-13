@@ -7,6 +7,7 @@
 // modified, or distributed except according to those terms.
 
 use anyhow::Result;
+use tracing::info;
 use std::{
     io::{BufRead, BufReader},
     process::{ChildStderr, ChildStdout, ExitStatus, Stdio},
@@ -19,6 +20,7 @@ use crate::{error::AuditCheckError, utils::handle_join_error};
 
 pub(crate) fn audit(deny: String, tx: Sender<String>, tx_code: Sender<i32>) -> Result<()> {
     let command = format!("cargo audit -D{deny}");
+    info!("Running '{command}'");
     let mut cmd = std::process::Command::new("sh");
     let _ = cmd.arg("-c");
     let _ = cmd.arg(command);
