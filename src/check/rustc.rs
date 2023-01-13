@@ -11,7 +11,7 @@ use rustc_version::{Version, VersionMeta};
 
 pub(crate) const MSRV: &str = "1.57.0";
 
-pub(crate) fn check_rustc_version(meta: VersionMeta) -> Result<bool> {
+pub(crate) fn check_rustc_version(meta: &VersionMeta) -> Result<bool> {
     Ok(meta.semver >= Version::parse(MSRV)?)
 }
 
@@ -32,13 +32,13 @@ LLVM version: 13.0.0
 
     #[test]
     fn check_rustc_version_succeeds() -> Result<()> {
-        assert!(check_rustc_version(version_meta()?).is_ok());
+        assert!(check_rustc_version(&version_meta()?).is_ok());
         Ok(())
     }
 
     #[test]
     fn check_rustc_version_fails() -> Result<()> {
-        assert!(check_rustc_version(version_meta_for(OLD_RUSTC)?).is_ok());
+        assert!(check_rustc_version(&version_meta_for(OLD_RUSTC)?).is_ok());
         Ok(())
     }
 }

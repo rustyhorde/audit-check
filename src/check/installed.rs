@@ -29,21 +29,18 @@ where
 #[cfg(test)]
 mod test {
     use super::check_audit;
-    use anyhow::Result;
 
     #[test]
-    fn check_audit_fails() -> Result<()> {
+    fn check_audit_fails() {
         let res = check_audit("blah -V");
         assert!(res.is_ok());
         assert!(!res.unwrap());
-        Ok(())
     }
 
     #[test]
-    fn check_audit_succeeds() -> Result<()> {
+    fn check_audit_succeeds() {
         let res = check_audit("rustc -Vv");
         assert!(res.is_ok());
         assert!(res.unwrap());
-        Ok(())
     }
 }
