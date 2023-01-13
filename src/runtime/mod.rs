@@ -153,6 +153,7 @@ async fn create_issue(config: Config) -> Result<()> {
         info!("Issue {} created", resp.id);
         Ok(())
     } else {
+        error!("Response: {res:?}");
         Err(anyhow!("status code: {}", res.status()))
     }
 }
