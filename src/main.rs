@@ -222,7 +222,7 @@ fn main() -> Result<()> {
                 rx_code_handle.join().map_err(handle_join_error)?;
                 Ok(())
             }
-            Err(e) => Err(anyhow!("cargo audit version check failed! {}", e)),
+            Err(e) => Err(anyhow!("cargo audit version check failed! '{e:?}'")),
         }
     } else {
         Err(anyhow!("cargo audit requires rust {} or greater", MSRV))
