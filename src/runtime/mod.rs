@@ -18,6 +18,8 @@ use crate::{
     utils::handle_join_error,
 };
 use anyhow::Result;
+use lazy_static::lazy_static;
+use regex::Regex;
 use reqwest::{
     header::{HeaderMap, HeaderValue},
     Client, Version,
@@ -132,6 +134,10 @@ struct Resp {
 
 static APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
 
+lazy_static! {
+    static ref ID_REGEX: Regex = Regex::new(r#"ID: +(.*)"#).unwrap();
+}
+
 async fn create_issue(
     config: Config,
     stdout_buf: Vec<String>,
@@ -139,6 +145,12 @@ async fn create_issue(
 ) -> Result<Resp> {
     let token = config.token;
     let owner_repo = config.owner_repo;
+    let stdout = stdout_buf.join("\n");
+    let id = if let Some(id_cap) = ID_REGEX.captures(&stdout) {
+        id_cap.get(1).map_or("Unknown ID", |m| m.as_str())
+    } else {
+        "Unknown ID"
+    };
 
     let mut headers = HeaderMap::new();
     let _old = headers.insert(
@@ -159,7 +171,7 @@ async fn create_issue(
     info!("STDOUT: {}", stdout_buf.join("\n"));
     info!("STDERR: {}", stderr_buf.join("\n"));
     let issue = Issue {
-        title: "Test Issue 2".to_string(),
+        title: id.to_string(),
         body: Some("This is another test issue".to_string()),
         milestone: None,
         labels: None,
