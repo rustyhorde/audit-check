@@ -14,11 +14,4 @@ cd ..; and \
 sudo chown -R $USER:$USER target/; and \
 cp target/x86_64-unknown-linux-musl/release/audit-check binary/; and \
 docker build -t ozias/audit-check:latest .; and \
-docker run -e INPUT_TOKEN -v cargo-cache:/root/.cargo/registry -v (pwd):/volume -w=/volume --rm -t ozias/audit-check:latest; and \
-git commit -am "updates"; and \
-git push; and \
-git push gh master; and \
-git tag -d v1; and \
-git push gh :refs/tags/v1; and \
-git tag -s "v1" -m "v1"; and \
-git push gh --tags
+docker run -e INPUT_TOKEN -v cargo-cache:/root/.cargo/registry -v (pwd):/volume -w=/volume --rm -t ozias/audit-check:latest
