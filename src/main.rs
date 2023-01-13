@@ -198,6 +198,7 @@ fn main() -> Result<()> {
     if check_rustc_version(&version_meta()?)? {
         println!("rustc version check successful");
         let _ = check_audit("ls -al")?;
+        let _ = check_audit("pwd")?;
         match check_audit("cargo audit --version") {
             Ok(success) => {
                 if success {
