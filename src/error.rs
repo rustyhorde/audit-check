@@ -27,4 +27,8 @@ pub(crate) enum AuditCheckError {
     RustcVersionCheck { msrv: &'static str },
     #[error("failed to initialize tracing")]
     TryInit(#[from] TryInitError),
+    #[error("Unable to create an issue")]
+    CreateIssue,
+    #[error("RUSTSEC issue found")]
+    RustSec,
 }

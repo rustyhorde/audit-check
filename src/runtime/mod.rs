@@ -17,7 +17,7 @@ use crate::{
     log::initialize,
     utils::handle_join_error,
 };
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use reqwest::{
     header::{HeaderMap, HeaderValue},
     Client, Version,
@@ -29,47 +29,51 @@ use std::{
     thread::spawn,
 };
 use tokio::runtime::Runtime;
-use tracing::{error, info};
+use tracing::{error, info, trace};
 
 pub(crate) fn run() -> Result<()> {
     let config = Config::from_env()?;
     initialize(config.level)?;
     if check_rustc_version(&version_meta()?)? {
-        info!("rustc version check successful");
+        trace!("rustc version check successful");
         match check_audit("cargo audit --version") {
             Ok(success) => {
                 if success {
-                    info!("cargo audit version check successful");
+                    trace!("cargo audit version check successful");
 
                     // channels for thread comms
                     let (tx_stdout, rx_stdout) = channel();
+                    let (tx_stderr, rx_stderr) = channel();
                     let (tx_code, rx_code) = channel();
 
                     // start the threads
                     let deny_c = config.deny.clone();
-                    let audit_handle = spawn(move || audit(&deny_c, tx_stdout, tx_code));
-                    let rx_handle = spawn(move || receive_stdout(&rx_stdout));
-                    let rx_code_handle = spawn(move || receive_code(&rx_code));
+                    let audit_handle = spawn(move || audit(&deny_c, tx_stdout, tx_stderr, tx_code));
+                    let stdout_handle = spawn(move || receive_stdout(&rx_stdout));
+                    let stderr_handle = spawn(move || receive_stderr(&rx_stderr));
+                    let code_handle = spawn(move || receive_code(&rx_code));
 
                     // wait for the thread to finish
                     audit_handle.join().map_err(handle_join_error)??;
-                    rx_handle.join().map_err(handle_join_error)?;
-                    let code = rx_code_handle.join().map_err(handle_join_error)?;
+                    let stdout_buf = stdout_handle.join().map_err(handle_join_error)?;
+                    let stderr_buf = stderr_handle.join().map_err(handle_join_error)?;
+                    let code = code_handle.join().map_err(handle_join_error)?;
                     if code == 0 {
                         Ok(())
                     } else if config.create_issue {
                         // Create the runtime
-                        info!("Creating Issue");
                         let rt = Runtime::new()?;
                         rt.block_on(async move {
-                            match create_issue(config).await {
-                                Ok(_) => info!("success"),
+                            match create_issue(config, stdout_buf, stderr_buf).await {
+                                Ok(resp) => {
+                                    info!("Issue {} created", resp.id);
+                                }
                                 Err(e) => error!("{e}"),
                             }
                         });
-                        Err(AuditCheckError::AuditVersionCheck.into())
+                        Err(AuditCheckError::RustSec.into())
                     } else {
-                        Err(AuditCheckError::AuditVersionCheck.into())
+                        Err(AuditCheckError::RustSec.into())
                     }
                 } else {
                     Err(AuditCheckError::AuditVersionCheck.into())
@@ -82,10 +86,22 @@ pub(crate) fn run() -> Result<()> {
     }
 }
 
-fn receive_stdout(rx: &Receiver<String>) {
+fn receive_stdout(rx: &Receiver<String>) -> Vec<String> {
+    let mut buf = vec![];
     while let Ok(message) = rx.recv() {
         info!("{message}");
+        buf.push(message);
     }
+    buf
+}
+
+fn receive_stderr(rx: &Receiver<String>) -> Vec<String> {
+    let mut buf = vec![];
+    while let Ok(message) = rx.recv() {
+        info!("{message}");
+        buf.push(message);
+    }
+    buf
 }
 
 fn receive_code(rx: &Receiver<i32>) -> i32 {
@@ -111,12 +127,16 @@ struct Issue {
 
 #[derive(Clone, Debug, Deserialize)]
 struct Resp {
-    id: String,
+    id: usize,
 }
 
 static APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
 
-async fn create_issue(config: Config) -> Result<()> {
+async fn create_issue(
+    config: Config,
+    stdout_buf: Vec<String>,
+    stderr_buf: Vec<String>,
+) -> Result<Resp> {
     let token = config.token;
     let owner_repo = config.owner_repo;
 
@@ -136,6 +156,8 @@ async fn create_issue(config: Config) -> Result<()> {
 
     let url = format!("https://api.github.com/repos/{owner_repo}/issues");
     info!("Posting to '{url}'");
+    info!("STDOUT: {}", stdout_buf.join("\n"));
+    info!("STDERR: {}", stderr_buf.join("\n"));
     let issue = Issue {
         title: "Test Issue 2".to_string(),
         body: Some("This is another test issue".to_string()),
@@ -152,13 +174,10 @@ async fn create_issue(config: Config) -> Result<()> {
         .await?;
 
     if res.status() == 201 {
-        let resp = res.json::<Resp>().await?;
-        info!("Issue {} created", resp.id);
-        Ok(())
+        Ok(res.json::<Resp>().await?)
     } else {
-        error!("Response: {res:?}");
         let body = res.bytes().await?;
         error!("{}", String::from_utf8_lossy(&body));
-        Err(anyhow!("create issue failed"))
+        Err(AuditCheckError::CreateIssue.into())
     }
 }

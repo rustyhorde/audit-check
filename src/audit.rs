@@ -14,13 +14,18 @@ use std::{
     thread,
     time::Duration,
 };
-use tracing::info;
+use tracing::trace;
 
 use crate::{error::AuditCheckError, utils::handle_join_error};
 
-pub(crate) fn audit(deny: &str, tx: Sender<String>, tx_code: Sender<i32>) -> Result<()> {
+pub(crate) fn audit(
+    deny: &str,
+    tx_stdout: Sender<String>,
+    tx_stderr: Sender<String>,
+    tx_code: Sender<i32>,
+) -> Result<()> {
     let command = format!("cargo audit -D{deny}");
-    info!("Running '{command}'");
+    trace!("Running '{command}'");
     let mut cmd = std::process::Command::new("sh");
     let _ = cmd.arg("-c");
     let _ = cmd.arg(command);
@@ -30,11 +35,10 @@ pub(crate) fn audit(deny: &str, tx: Sender<String>, tx_code: Sender<i32>) -> Res
     let mut child = cmd.spawn()?;
 
     let stdout = child.stdout.take().ok_or(AuditCheckError::Stdout)?;
-    let tx_stdout = tx.clone();
     let stdout_handle = thread::spawn(move || handle_stdout(stdout, &tx_stdout));
 
     let stderr = child.stderr.take().ok_or(AuditCheckError::Stderr)?;
-    let stderr_handle = thread::spawn(move || handle_stderr(stderr, &tx));
+    let stderr_handle = thread::spawn(move || handle_stderr(stderr, &tx_stderr));
 
     loop {
         match child.try_wait() {
