@@ -114,6 +114,8 @@ struct Resp {
     id: String,
 }
 
+static APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
+
 async fn create_issue(config: Config) -> Result<()> {
     let token = config.token;
     let owner_repo = config.owner_repo;
@@ -127,7 +129,10 @@ async fn create_issue(config: Config) -> Result<()> {
         "X-GitHub-Api-Version",
         HeaderValue::from_static("2022-11-28"),
     );
-    let client = Client::builder().default_headers(headers).build()?;
+    let client = Client::builder()
+        .user_agent(APP_USER_AGENT)
+        .default_headers(headers)
+        .build()?;
 
     let url = format!("https://api.github.com/repos/{owner_repo}/issues");
     info!("Posting to '{url}'");
