@@ -12,6 +12,10 @@ inputs:
     description: 'set the tracing output level: TRACE,INFO,WARN,ERROR,FAIL'
     required: false
     default: 'INFO'
+  create_issue:
+    description: 'create an issue when a RUSTSEC warning is found'
+    required: false
+    default: 'false'
 runs:
   using: 'docker'
   image: 'Dockerfile'
@@ -19,3 +23,4 @@ runs:
     - ${{ inputs.token }}
     - ${{ inputs.deny }}
     - ${{ inputs.level }}
+    - ${{ inputs.create_issue }}

@@ -17,13 +17,19 @@ use crate::{
     log::initialize,
     utils::handle_join_error,
 };
-use anyhow::Result;
+use anyhow::{anyhow, Result};
+use reqwest::{
+    header::{HeaderMap, HeaderValue},
+    Client,
+};
 use rustc_version::version_meta;
+use serde::{Deserialize, Serialize};
 use std::{
     sync::mpsc::{channel, Receiver},
     thread::spawn,
 };
-use tracing::{error, info};
+use tokio::runtime::Runtime;
+use tracing::info;
 
 pub(crate) fn run() -> Result<()> {
     let config = Config::from_env()?;
@@ -51,8 +57,12 @@ pub(crate) fn run() -> Result<()> {
                     let code = rx_code_handle.join().map_err(handle_join_error)?;
                     if code == 0 {
                         Ok(())
+                    } else if config.create_issue {
+                        // Create the runtime
+                        let rt = Runtime::new()?;
+                        let _res = rt.block_on(async move { create_issue(config).await });
+                        Err(AuditCheckError::AuditVersionCheck.into())
                     } else {
-                        error!("Using token '{}'", config.token);
                         Err(AuditCheckError::AuditVersionCheck.into())
                     }
                 } else {
@@ -77,5 +87,65 @@ fn receive_code(rx: &Receiver<i32>) -> i32 {
         code
     } else {
         -1
+    }
+}
+
+#[derive(Clone, Debug, Serialize)]
+struct Issue {
+    title: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    body: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    milestone: Option<usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    labels: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    assignees: Option<Vec<String>>,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+struct Resp {
+    id: String,
+}
+
+async fn create_issue(config: Config) -> Result<()> {
+    let token = config.token;
+    let action_repo = config.action_repo;
+
+    let mut headers = HeaderMap::new();
+    let _old = headers.insert(
+        "Accept",
+        HeaderValue::from_static("Accept: application/vnd.github+json"),
+    );
+    let _old = headers.insert(
+        "X-GitHub-Api-Version",
+        HeaderValue::from_static("2022-11-28"),
+    );
+    let client = Client::builder()
+        .brotli(true)
+        .default_headers(headers)
+        .build()?;
+
+    let url = format!("https://api.github.com/repos/{action_repo}/issues");
+    let issue = Issue {
+        title: "Test Issue 2".to_string(),
+        body: Some("This is another test issue".to_string()),
+        milestone: None,
+        labels: None,
+        assignees: None,
+    };
+    let res = client
+        .post(&url)
+        .bearer_auth(token)
+        .json(&issue)
+        .send()
+        .await?;
+
+    if res.status() == 201 {
+        let resp = res.json::<Resp>().await?;
+        info!("Issue {} created", resp.id);
+        Ok(())
+    } else {
+        Err(anyhow!("status code: {}", res.status()))
     }
 }
