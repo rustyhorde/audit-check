@@ -219,9 +219,10 @@ fn main() -> Result<()> {
             audit_handle.join().map_err(handle_join_error)??;
             rx_handle.join().map_err(handle_join_error)?;
             rx_code_handle.join().map_err(handle_join_error)?;
+            Ok(())
+        } else {
+            Err(anyhow!("cargo audit version check failed!"))
         }
-
-        Ok(())
     } else {
         Err(anyhow!("cargo audit requires rust {} or greater", MSRV))
     }
