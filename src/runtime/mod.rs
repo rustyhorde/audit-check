@@ -29,7 +29,7 @@ use std::{
     thread::spawn,
 };
 use tokio::runtime::Runtime;
-use tracing::info;
+use tracing::{error, info};
 
 pub(crate) fn run() -> Result<()> {
     let config = Config::from_env()?;
@@ -59,8 +59,14 @@ pub(crate) fn run() -> Result<()> {
                         Ok(())
                     } else if config.create_issue {
                         // Create the runtime
+                        info!("Creating Issue");
                         let rt = Runtime::new()?;
-                        let _res = rt.block_on(async move { create_issue(config).await });
+                        rt.block_on(async move {
+                            match create_issue(config).await {
+                                Ok(_) => info!("success"),
+                                Err(e) => error!("{e}"),
+                            }
+                        });
                         Err(AuditCheckError::AuditVersionCheck.into())
                     } else {
                         Err(AuditCheckError::AuditVersionCheck.into())
