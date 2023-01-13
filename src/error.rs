@@ -7,9 +7,12 @@
 // modified, or distributed except according to those terms.
 
 use thiserror::Error;
+use tracing_subscriber::util::TryInitError;
 
 #[derive(Debug, Error)]
 pub(crate) enum AuditCheckError {
+    #[error("An error has occurred")]
+    Anyhow(#[from] anyhow::Error),
     #[error("Unable to pipe stderr")]
     Stderr,
     #[error("Unable to pipe stdout")]
@@ -18,4 +21,10 @@ pub(crate) enum AuditCheckError {
     Code,
     #[error("Error joining thread handle")]
     Join,
+    #[error("cargo audit version check failed")]
+    AuditVersionCheck,
+    #[error("cargo audit requires rust {msrv:?} or greater")]
+    RustcVersionCheck { msrv: &'static str },
+    #[error("failed to initialize tracing")]
+    TryInit(#[from] TryInitError),
 }

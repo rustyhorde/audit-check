@@ -5,8 +5,10 @@ inputs:
     description: 'exit with an error on: warnings (any), unmaintained, unsound, yanked'
     required: false
     default: 'warnings'
+  level:
+    description: 'set the tracing output level: TRACE,INFO,WARN,ERROR,FAIL'
+    required: false
+    default: 'INFO'
 runs:
   using: 'docker'
   image: 'Dockerfile'
-  args:
-    - ${{ inputs.deny }}
