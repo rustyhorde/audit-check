@@ -20,7 +20,7 @@ use crate::{
 use anyhow::{anyhow, Result};
 use reqwest::{
     header::{HeaderMap, HeaderValue},
-    Client,
+    Client, Version,
 };
 use rustc_version::version_meta;
 use serde::{Deserialize, Serialize};
@@ -140,6 +140,7 @@ async fn create_issue(config: Config) -> Result<()> {
     };
     let res = client
         .post(&url)
+        .version(Version::HTTP_11)
         .bearer_auth(token)
         .json(&issue)
         .send()
