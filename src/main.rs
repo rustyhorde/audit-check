@@ -197,31 +197,32 @@ mod utils;
 fn main() -> Result<()> {
     if check_rustc_version(&version_meta()?)? {
         println!("rustc version check successful");
-        if check_audit("cargo audit --version")? {
-            println!("cargo audit version check successful");
-            if let Ok(deny) = env::var("INPUT_DENY") {
-                println!("DENY: {deny}");
-            }
-            let (sender, receiver) = channel();
-            let (code_sender, code_receiver) = channel();
-            let audit_handle = thread::spawn(move || audit(sender, code_sender));
+        match check_audit("cargo audit --version") {
+            Ok(_success) => {
+                println!("cargo audit version check successful");
+                if let Ok(deny) = env::var("INPUT_DENY") {
+                    println!("DENY: {deny}");
+                }
+                let (sender, receiver) = channel();
+                let (code_sender, code_receiver) = channel();
+                let audit_handle = thread::spawn(move || audit(sender, code_sender));
 
-            let rx_handle = thread::spawn(move || {
-                while let Ok(message) = receiver.recv() {
-                    println!("{message}");
-                }
-            });
-            let rx_code_handle = thread::spawn(move || {
-                while let Ok(code) = code_receiver.recv() {
-                    println!("Code: {code}");
-                }
-            });
-            audit_handle.join().map_err(handle_join_error)??;
-            rx_handle.join().map_err(handle_join_error)?;
-            rx_code_handle.join().map_err(handle_join_error)?;
-            Ok(())
-        } else {
-            Err(anyhow!("cargo audit version check failed!"))
+                let rx_handle = thread::spawn(move || {
+                    while let Ok(message) = receiver.recv() {
+                        println!("{message}");
+                    }
+                });
+                let rx_code_handle = thread::spawn(move || {
+                    while let Ok(code) = code_receiver.recv() {
+                        println!("Code: {code}");
+                    }
+                });
+                audit_handle.join().map_err(handle_join_error)??;
+                rx_handle.join().map_err(handle_join_error)?;
+                rx_code_handle.join().map_err(handle_join_error)?;
+                Ok(())
+            }
+            Err(e) => Err(anyhow!("cargo audit version check failed! {}", e)),
         }
     } else {
         Err(anyhow!("cargo audit requires rust {} or greater", MSRV))
