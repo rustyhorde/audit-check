@@ -121,7 +121,7 @@ async fn create_issue(config: Config) -> Result<()> {
     let mut headers = HeaderMap::new();
     let _old = headers.insert(
         "Accept",
-        HeaderValue::from_static("Accept: application/vnd.github+json"),
+        HeaderValue::from_static("application/vnd.github+json"),
     );
     let _old = headers.insert(
         "X-GitHub-Api-Version",
@@ -133,6 +133,7 @@ async fn create_issue(config: Config) -> Result<()> {
         .build()?;
 
     let url = format!("https://api.github.com/repos/{action_repo}/issues");
+    info!("Posting to '{url}'");
     let issue = Issue {
         title: "Test Issue 2".to_string(),
         body: Some("This is another test issue".to_string()),
