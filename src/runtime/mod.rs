@@ -12,6 +12,7 @@ use crate::{
         installed::check_audit,
         rustc::{check_rustc_version, MSRV},
     },
+    config::Config,
     error::AuditCheckError,
     log::initialize,
     utils::handle_join_error,
@@ -19,24 +20,14 @@ use crate::{
 use anyhow::Result;
 use rustc_version::version_meta;
 use std::{
-    env,
     sync::mpsc::{channel, Receiver},
-    thread,
+    thread::spawn,
 };
-use tracing::info;
+use tracing::{error, info};
 
 pub(crate) fn run() -> Result<()> {
-    let deny = if let Ok(deny) = env::var("INPUT_DENY") {
-        deny
-    } else {
-        "warnings".to_string()
-    };
-    let level = if let Ok(level) = env::var("INPUT_LEVEL") {
-        level
-    } else {
-        "INFO".to_string()
-    };
-    initialize(&level)?;
+    let config = Config::from_env()?;
+    initialize(config.level)?;
     if check_rustc_version(&version_meta()?)? {
         info!("rustc version check successful");
         match check_audit("cargo audit --version") {
@@ -49,9 +40,10 @@ pub(crate) fn run() -> Result<()> {
                     let (tx_code, rx_code) = channel();
 
                     // start the threads
-                    let audit_handle = thread::spawn(move || audit(&deny, tx_stdout, tx_code));
-                    let rx_handle = thread::spawn(move || receive_stdout(&rx_stdout));
-                    let rx_code_handle = thread::spawn(move || receive_code(&rx_code));
+                    let deny_c = config.deny.clone();
+                    let audit_handle = spawn(move || audit(&deny_c, tx_stdout, tx_code));
+                    let rx_handle = spawn(move || receive_stdout(&rx_stdout));
+                    let rx_code_handle = spawn(move || receive_code(&rx_code));
 
                     // wait for the thread to finish
                     audit_handle.join().map_err(handle_join_error)??;
@@ -60,6 +52,7 @@ pub(crate) fn run() -> Result<()> {
                     if code == 0 {
                         Ok(())
                     } else {
+                        error!("Using token '{}'", config.token);
                         Err(AuditCheckError::AuditVersionCheck.into())
                     }
                 } else {

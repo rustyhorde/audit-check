@@ -1,6 +1,9 @@
 name: 'cargo-audit-check'
 description: 'Run cargo audit on your project'
 inputs:
+  token:
+    description: 'Your github token, which will allow issue creation'
+    required: true
   deny:
     description: 'exit with an error on: warnings (any), unmaintained, unsound, yanked'
     required: false
@@ -13,5 +16,6 @@ runs:
   using: 'docker'
   image: 'Dockerfile'
   args:
+    - ${{ inputs.token }}
     - ${{ inputs.deny }}
     - ${{ inputs.level }}

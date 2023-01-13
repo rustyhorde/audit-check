@@ -183,6 +183,7 @@ use anyhow::Result;
 
 mod audit;
 mod check;
+mod config;
 mod error;
 mod log;
 mod runtime;
