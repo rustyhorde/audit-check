@@ -18,6 +18,7 @@ use std::{
 use crate::{error::AuditCheckError, utils::handle_join_error};
 
 pub(crate) fn audit(tx: Sender<String>, tx_code: Sender<i32>) -> Result<()> {
+    println!("Running cargo audit");
     let mut cmd = std::process::Command::new("sh");
     let _ = cmd.arg("-c");
     let _ = cmd.arg("cargo audit");

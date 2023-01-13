@@ -196,7 +196,9 @@ mod utils;
 
 fn main() -> Result<()> {
     if check_rustc_version(&version_meta()?)? {
+        println!("rustc version check successful");
         if check_audit("cargo audit --version")? {
+            println!("cargo audit version check successful");
             if let Ok(deny) = env::var("INPUT_DENY") {
                 println!("DENY: {deny}");
             }
@@ -210,8 +212,8 @@ fn main() -> Result<()> {
                 }
             });
             let rx_code_handle = thread::spawn(move || {
-                while let Ok(message) = code_receiver.recv() {
-                    println!("{message}");
+                while let Ok(code) = code_receiver.recv() {
+                    println!("Code: {code}");
                 }
             });
             audit_handle.join().map_err(handle_join_error)??;
