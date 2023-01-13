@@ -152,6 +152,8 @@ async fn create_issue(config: Config) -> Result<()> {
         Ok(())
     } else {
         error!("Response: {res:?}");
-        Err(anyhow!("status code: {}", res.status()))
+        let body = res.bytes().await?;
+        error!("{}", String::from_utf8_lossy(&body));
+        Err(anyhow!("create issue failed"))
     }
 }
