@@ -17,8 +17,8 @@ use tracing_subscriber::{
     util::SubscriberInitExt,
 };
 
-pub(crate) fn initialize(level: String) -> Result<()> {
-    let level = Level::from_str(&level)?;
+pub(crate) fn initialize(level: &str) -> Result<()> {
+    let level = Level::from_str(level)?;
     let format = fmt::layer()
         .compact()
         .with_level(true)
