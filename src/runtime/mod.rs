@@ -214,7 +214,9 @@ async fn create_issue(
 }
 
 fn parse(output: &str) -> BTreeMap<String, (String, Rustsec)> {
-    let splits: Vec<&str> = output.split("\n\n").collect();
+    let mut splits: Vec<String> = output.split("\n\n").map(str::to_string).collect();
+
+    splits[0] = splits[0].lines().skip(4).collect::<Vec<&str>>().join("\n");
 
     splits
         .iter()
@@ -223,7 +225,7 @@ fn parse(output: &str) -> BTreeMap<String, (String, Rustsec)> {
         .collect()
 }
 
-fn parse_rustsec(rustsec_str: &&str) -> Rustsec {
+fn parse_rustsec(rustsec_str: &str) -> Rustsec {
     let id = parse_caps(&ID_REGEX, rustsec_str, "No ID");
     let url = parse_caps(&URL_REGEX, rustsec_str, "No URL");
     let krate = parse_caps(&CRATE_REGEX, rustsec_str, "No Crate");
@@ -267,7 +269,7 @@ fn generate_title(rustsec_map: &BTreeMap<String, (String, Rustsec)>) -> String {
 
 fn generate_body(rustsec_map: &BTreeMap<String, (String, Rustsec)>) -> String {
     rustsec_map.iter().fold(String::new(), |acc, (k, v)| {
-        acc + &format!("# {}\n{}\n\n````{}````\n\n", k, v.1.url, v.0)
+        acc + &format!("# {}\n{}\n\n````\n{}\n````\n\n", k, v.1.url, v.0)
     })
 }
 
