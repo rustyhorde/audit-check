@@ -269,7 +269,7 @@ fn generate_title(rustsec_map: &BTreeMap<String, (String, Rustsec)>) -> String {
 
 fn generate_body(rustsec_map: &BTreeMap<String, (String, Rustsec)>) -> String {
     rustsec_map.iter().fold(String::new(), |acc, (k, v)| {
-        acc + &format!("# {}\n{}\n\n````\n{}\n````\n\n", k, v.1.url, v.0)
+        acc + &format!("# ‼️ {} ‼️\n{}\n\n````\n{}\n````\n\n", k, v.1.url, v.0)
     })
 }
 
