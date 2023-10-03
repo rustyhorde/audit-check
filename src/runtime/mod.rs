@@ -136,17 +136,15 @@ struct Resp {
 static APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
 
 lazy_static! {
-    static ref CRATE_REGEX: Regex = Regex::new(r#"Crate: +(.*)"#).expect("Invalid CRATE_REGEX");
-    static ref VERSION_REGEX: Regex =
-        Regex::new(r#"Version: +(.*)"#).expect("Invalid VERSION_REGEX");
-    static ref WARNING_REGEX: Regex =
-        Regex::new(r#"Warning: +(.*)"#).expect("Invalid WARNING_REGEX");
-    static ref TITLE_REGEX: Regex = Regex::new(r#"Title: +(.*)"#).expect("Invalid TITLE_REGEX");
-    static ref DATE_REGEX: Regex = Regex::new(r#"Date: +(.*)"#).expect("Invalid DATE_REGEX");
+    static ref CRATE_REGEX: Regex = Regex::new(r"Crate: +(.*)").expect("Invalid CRATE_REGEX");
+    static ref VERSION_REGEX: Regex = Regex::new(r"Version: +(.*)").expect("Invalid VERSION_REGEX");
+    static ref WARNING_REGEX: Regex = Regex::new(r"Warning: +(.*)").expect("Invalid WARNING_REGEX");
+    static ref TITLE_REGEX: Regex = Regex::new(r"Title: +(.*)").expect("Invalid TITLE_REGEX");
+    static ref DATE_REGEX: Regex = Regex::new(r"Date: +(.*)").expect("Invalid DATE_REGEX");
     static ref SOLUTION_REGEX: Regex =
-        Regex::new(r#"Solution: +(.*)"#).expect("Invalid SOLUTION_REGEX");
-    static ref ID_REGEX: Regex = Regex::new(r#"ID: +(RUSTSEC.*)"#).expect("Invalid ID_REGEX");
-    static ref URL_REGEX: Regex = Regex::new(r#"URL: +(https:.*)"#).expect("Invalid URL_REGEX");
+        Regex::new(r"Solution: +(.*)").expect("Invalid SOLUTION_REGEX");
+    static ref ID_REGEX: Regex = Regex::new(r"ID: +(RUSTSEC.*)").expect("Invalid ID_REGEX");
+    static ref URL_REGEX: Regex = Regex::new(r"URL: +(https:.*)").expect("Invalid URL_REGEX");
 }
 
 #[allow(dead_code)]
@@ -277,7 +275,7 @@ fn generate_body(rustsec_map: &BTreeMap<String, (String, Rustsec)>) -> String {
 mod test {
     use super::{generate_title, parse};
 
-    const TEST_RUSTSEC: &str = r#"Crate:     aovec
+    const TEST_RUSTSEC: &str = r"Crate:     aovec
 Version:   1.1.0
 Title:     Aovec<T> lacks bound on its Send and Sync traits allowing data races
 Date:      2020-12-10
@@ -323,7 +321,7 @@ Dependency tree:
 smallvec 0.4.5
 └── aovec 1.1.0
     └── audit-check-test 0.1.0
-"#;
+";
 
     #[test]
     fn parse_works() {
