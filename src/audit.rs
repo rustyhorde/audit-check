@@ -58,7 +58,7 @@ pub(crate) fn audit(
 
 fn handle_stdout(stdout: ChildStdout, tx: &Sender<String>) -> Result<()> {
     let stdout_reader = BufReader::new(stdout);
-    for line in stdout_reader.lines().flatten() {
+    for line in stdout_reader.lines().map_while(Result::ok) {
         tx.send(line)?;
     }
     Ok(())
@@ -66,7 +66,7 @@ fn handle_stdout(stdout: ChildStdout, tx: &Sender<String>) -> Result<()> {
 
 fn handle_stderr(stderr: ChildStderr, tx: &Sender<String>) -> Result<()> {
     let stderr_reader = BufReader::new(stderr);
-    for line in stderr_reader.lines().flatten() {
+    for line in stderr_reader.lines().map_while(Result::ok) {
         tx.send(line)?;
     }
     Ok(())
