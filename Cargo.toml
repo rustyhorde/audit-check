@@ -12,18 +12,21 @@ readme = "README.md"
 repository = "https://github.com/rustyhorde/audit-check"
 version = "0.1.1"
 
+[features]
+unstable = []
+
 [dependencies]
-anyhow = "1.0.79"
-lazy_static = "1.4.0"
-regex = "1.10.2"
-reqwest = { version = "0.11.23", default-features = false, features = ["rustls-tls", "brotli", "json", "trust-dns"] }
-rustc_version = "0.4.0"
-serde = { version = "1.0.195", features = ["derive"] }
-thiserror = "1.0.56"
-time = { version = "0.3.31", features = ["formatting"] }
-tokio = { version = "1.35.1", features = ["rt-multi-thread"] }
+anyhow = "1.0.87"
+lazy_static = "1.5.0"
+regex = "1.10.6"
+reqwest = { version = "0.12.7", default-features = false, features = ["rustls-tls", "brotli", "json", "trust-dns"] }
+rustc_version = "0.4.1"
+serde = { version = "1.0.210", features = ["derive"] }
+thiserror = "1.0.63"
+time = { version = "0.3.36", features = ["formatting"] }
+tokio = { version = "1.40.0", features = ["rt-multi-thread"] }
 tracing = { version = "0.1.40", features = ["max_level_trace", "release_max_level_trace"] }
 tracing-subscriber = { version = "0.3.18", features = ["time"] }
 
 [build-dependencies]
-rustversion = "1.0.14"
+rustversion = "1.0.17"

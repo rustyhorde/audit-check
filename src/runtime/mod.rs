@@ -108,11 +108,7 @@ fn receive_stderr(rx: &Receiver<String>) -> Vec<String> {
 }
 
 fn receive_code(rx: &Receiver<i32>) -> i32 {
-    if let Ok(code) = rx.recv() {
-        code
-    } else {
-        -1
-    }
+    rx.recv().unwrap_or(-1)
 }
 
 #[derive(Clone, Debug, Serialize)]
