@@ -24,7 +24,7 @@ rustc_version = "0.4.1"
 serde = { version = "1.0.210", features = ["derive"] }
 thiserror = "1.0.63"
 time = { version = "0.3.36", features = ["formatting"] }
-tokio = { version = "1.40.0", features = ["rt-multi-thread"] }
+tokio = { version = "1.43.1", features = ["rt-multi-thread"] }
 tracing = { version = "0.1.40", features = ["max_level_trace", "release_max_level_trace"] }
 tracing-subscriber = { version = "0.3.18", features = ["time"] }
 
