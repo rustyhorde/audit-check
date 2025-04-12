@@ -3,7 +3,7 @@ authors = ["Jason Ozias <jason.g.ozias@gmail.com>"]
 categories = ["development-tools"]
 description = "Github Action to run 'cargo audit' on your Rust project"
 documentation = "https://docs.rs/audit-check"
-edition = "2021"
+edition = "2024"
 homepage = "https://github.com/rustyhorde/audit-check"
 keywords = ["cargo", "audit", "github", "actions"]
 license = "MIT OR Apache-2.0"
@@ -16,17 +16,16 @@ version = "0.1.1"
 unstable = []
 
 [dependencies]
-anyhow = "1.0.87"
-lazy_static = "1.5.0"
-regex = "1.10.6"
-reqwest = { version = "0.12.7", default-features = false, features = ["rustls-tls", "brotli", "json", "trust-dns"] }
+anyhow = "1.0.97"
+regex = "1.11.1"
+reqwest = { version = "0.12.15", default-features = false, features = ["rustls-tls", "brotli", "json", "trust-dns"] }
 rustc_version = "0.4.1"
-serde = { version = "1.0.210", features = ["derive"] }
-thiserror = "1.0.63"
-time = { version = "0.3.36", features = ["formatting"] }
-tokio = { version = "1.40.0", features = ["rt-multi-thread"] }
-tracing = { version = "0.1.40", features = ["max_level_trace", "release_max_level_trace"] }
-tracing-subscriber = { version = "0.3.18", features = ["time"] }
+serde = { version = "1.0.219", features = ["derive"] }
+thiserror = "2.0.12"
+time = { version = "0.3.41", features = ["formatting"] }
+tokio = { version = "1.44.2", features = ["rt-multi-thread"] }
+tracing = { version = "0.1.41", features = ["max_level_trace", "release_max_level_trace"] }
+tracing-subscriber = { version = "0.3.19", features = ["time"] }
 
 [build-dependencies]
-rustversion = "1.0.17"
+rustversion = "1.0.20"

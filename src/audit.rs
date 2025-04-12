@@ -73,7 +73,7 @@ fn handle_stderr(stderr: ChildStderr, tx: &Sender<String>) -> Result<()> {
 }
 
 fn handle_status(exit_status: ExitStatus, tx: Sender<i32>) -> Result<()> {
-    let code = exit_status.code().take().ok_or(AuditCheckError::Code)?;
+    let code = exit_status.code().ok_or(AuditCheckError::Code)?;
     tx.send(code)?;
     drop(tx);
     Ok(())
