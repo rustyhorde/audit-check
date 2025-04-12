@@ -8,7 +8,7 @@
 
 use anyhow::Result;
 use time::format_description::well_known::Iso8601;
-use tracing::{metadata::LevelFilter, Level};
+use tracing::{Level, metadata::LevelFilter};
 use tracing_subscriber::{
     fmt::{self, time::UtcTime},
     prelude::__tracing_subscriber_SubscriberExt,

@@ -10,7 +10,7 @@ use crate::{
     audit::audit,
     check::{
         installed::check_audit,
-        rustc::{check_rustc_version, MSRV},
+        rustc::{MSRV, check_rustc_version},
     },
     config::Config,
     error::AuditCheckError,
@@ -18,17 +18,19 @@ use crate::{
     utils::handle_join_error,
 };
 use anyhow::Result;
-use lazy_static::lazy_static;
 use regex::Regex;
 use reqwest::{
-    header::{HeaderMap, HeaderValue},
     Client, Version,
+    header::{HeaderMap, HeaderValue},
 };
 use rustc_version::version_meta;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::BTreeMap,
-    sync::mpsc::{channel, Receiver},
+    sync::{
+        LazyLock,
+        mpsc::{Receiver, channel},
+    },
     thread::spawn,
 };
 use tokio::runtime::Runtime;
@@ -131,17 +133,22 @@ struct Resp {
 
 static APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
 
-lazy_static! {
-    static ref CRATE_REGEX: Regex = Regex::new(r"Crate: +(.*)").expect("Invalid CRATE_REGEX");
-    static ref VERSION_REGEX: Regex = Regex::new(r"Version: +(.*)").expect("Invalid VERSION_REGEX");
-    static ref WARNING_REGEX: Regex = Regex::new(r"Warning: +(.*)").expect("Invalid WARNING_REGEX");
-    static ref TITLE_REGEX: Regex = Regex::new(r"Title: +(.*)").expect("Invalid TITLE_REGEX");
-    static ref DATE_REGEX: Regex = Regex::new(r"Date: +(.*)").expect("Invalid DATE_REGEX");
-    static ref SOLUTION_REGEX: Regex =
-        Regex::new(r"Solution: +(.*)").expect("Invalid SOLUTION_REGEX");
-    static ref ID_REGEX: Regex = Regex::new(r"ID: +(RUSTSEC.*)").expect("Invalid ID_REGEX");
-    static ref URL_REGEX: Regex = Regex::new(r"URL: +(https:.*)").expect("Invalid URL_REGEX");
-}
+static CRATE_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"Crate: +(.*)").expect("Invalid CRATE_REGEX"));
+static VERSION_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"Version: +(.*)").expect("Invalid VERSION_REGEX"));
+static WARNING_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"Warning: +(.*)").expect("Invalid WARNING_REGEX"));
+static TITLE_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"Title: +(.*)").expect("Invalid TITLE_REGEX"));
+static DATE_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"Date: +(.*)").expect("Invalid DATE_REGEX"));
+static SOLUTION_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"Solution: +(.*)").expect("Invalid SOLUTION_REGEX"));
+static ID_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"ID: +(RUSTSEC.*)").expect("Invalid ID_REGEX"));
+static URL_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"URL: +(https:.*)").expect("Invalid URL_REGEX"));
 
 #[allow(dead_code)]
 #[derive(Clone, Debug)]
