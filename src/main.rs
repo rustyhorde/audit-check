@@ -26,7 +26,6 @@
 #![cfg_attr(
     nightly,
     deny(
-        abi_unsupported_vector_types,
         absolute_paths_not_starting_with_crate,
         ambiguous_glob_imports,
         ambiguous_glob_reexports,
@@ -63,7 +62,6 @@
         dyn_drop,
         edition_2024_expr_fragment_specifier,
         elided_lifetimes_in_paths,
-        elided_named_lifetimes,
         ellipsis_inclusive_range_patterns,
         explicit_outlives_requirements,
         exported_private_dependencies,
@@ -95,6 +93,7 @@
         macro_use_extern_crate,
         map_unit_fn,
         meta_variable_misuse,
+        mismatched_lifetime_syntaxes,
         missing_abi,
         missing_copy_implementations,
         missing_debug_implementations,
@@ -150,7 +149,6 @@
         uncommon_codepoints,
         unconditional_recursion,
         uncovered_param_in_projection,
-        undefined_naked_function_abi,
         unexpected_cfgs,
         unfulfilled_lint_expectations,
         ungated_async_fn_track_caller,
@@ -169,7 +167,6 @@
         unsafe_op_in_unsafe_fn,
         unstable_name_collisions,
         unstable_syntax_pre_expansion,
-        unsupported_fn_ptr_calling_conventions,
         unused_allocation,
         unused_assignments,
         unused_associated_type_bounds,
@@ -196,7 +193,6 @@
         useless_ptr_null_checks,
         uses_power_alignment,
         variant_size_differences,
-        wasm_c_abi,
         while_true,
     )
 )]
@@ -243,6 +239,8 @@
     all(nightly, feature = "unstable"),
     deny(rustdoc::missing_doc_code_examples)
 )]
+#![cfg_attr(all(docsrs), feature(doc_cfg))]
+#![cfg_attr(coverage_nightly, feature(coverage_attribute))]
 
 use anyhow::Result;
 

@@ -10,22 +10,22 @@ license = "MIT OR Apache-2.0"
 name = "audit-check"
 readme = "README.md"
 repository = "https://github.com/rustyhorde/audit-check"
-version = "0.1.1"
+version = "0.1.2"
 
 [features]
 unstable = []
 
 [dependencies]
-anyhow = "1.0.97"
-regex = "1.11.1"
-reqwest = { version = "0.12.15", default-features = false, features = ["rustls-tls", "brotli", "json", "trust-dns"] }
+anyhow = "1.0.100"
+regex = "1.11.3"
+reqwest = { version = "0.12.23", default-features = false, features = ["rustls-tls", "brotli", "json", "trust-dns"] }
 rustc_version = "0.4.1"
-serde = { version = "1.0.219", features = ["derive"] }
-thiserror = "2.0.12"
-time = { version = "0.3.41", features = ["formatting"] }
-tokio = { version = "1.44.2", features = ["rt-multi-thread"] }
+serde = { version = "1.0.228", features = ["derive"] }
+thiserror = "2.0.17"
+time = { version = "0.3.44", features = ["formatting"] }
+tokio = { version = "1.47.1", features = ["rt-multi-thread"] }
 tracing = { version = "0.1.41", features = ["max_level_trace", "release_max_level_trace"] }
-tracing-subscriber = { version = "0.3.19", features = ["time"] }
+tracing-subscriber = { version = "=0.3.19", features = ["time"] }
 
 [build-dependencies]
-rustversion = "1.0.20"
+rustversion = "1.0.22"

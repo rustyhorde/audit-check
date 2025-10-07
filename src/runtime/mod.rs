@@ -222,7 +222,7 @@ fn parse(output: &str) -> BTreeMap<String, (String, Rustsec)> {
     splits
         .iter()
         .map(|x| (x, parse_rustsec(x)))
-        .map(|(s, x)| (x.id.clone(), ((*s).to_string(), x)))
+        .map(|(s, x)| (x.id.clone(), ((*s).clone(), x)))
         .collect()
 }
 
