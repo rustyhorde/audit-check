@@ -22,7 +22,7 @@ reqwest = { version = "0.12.23", default-features = false, features = ["rustls-t
 rustc_version = "0.4.1"
 serde = { version = "1.0.228", features = ["derive"] }
 thiserror = "2.0.17"
-time = { version = "0.3.44", features = ["formatting"] }
+time = { version = "0.3.47", features = ["formatting"] }
 tokio = { version = "1.47.1", features = ["rt-multi-thread"] }
 tracing = { version = "0.1.41", features = ["max_level_trace", "release_max_level_trace"] }
 tracing-subscriber = { version = "=0.3.19", features = ["time"] }
