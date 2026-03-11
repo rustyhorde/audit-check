@@ -16,15 +16,15 @@ version = "0.1.2"
 unstable = []
 
 [dependencies]
-anyhow = "1.0.100"
-regex = "1.11.3"
-reqwest = { version = "0.12.23", default-features = false, features = ["rustls-tls", "brotli", "json", "trust-dns"] }
+anyhow = "1.0.102"
+regex = "1.12.3"
+reqwest = { version = "0.13.2", default-features = false, features = ["rustls", "brotli", "json"] }
 rustc_version = "0.4.1"
 serde = { version = "1.0.228", features = ["derive"] }
-thiserror = "2.0.17"
+thiserror = "2.0.18"
 time = { version = "0.3.47", features = ["formatting"] }
-tokio = { version = "1.47.1", features = ["rt-multi-thread"] }
-tracing = { version = "0.1.41", features = ["max_level_trace", "release_max_level_trace"] }
+tokio = { version = "1.50.0", features = ["rt-multi-thread"] }
+tracing = { version = "0.1.44", features = ["max_level_trace", "release_max_level_trace"] }
 tracing-subscriber = { version = "=0.3.19", features = ["time"] }
 
 [build-dependencies]
