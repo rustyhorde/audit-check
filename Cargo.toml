@@ -29,3 +29,12 @@ tracing-subscriber = { version = "0.3.23", features = ["time"] }
 
 [build-dependencies]
 rustversion = "1.0.22"
+
+[package.metadata.binstall]
+pkg-url = "{ repo }/releases/download/v{ version }/{ name }-{ target }-v{ version }.tar.gz"
+bin-dir = "{ bin }{ binary-ext }"
+pkg-fmt = "tgz"
+
+[package.metadata.binstall.overrides.x86_64-pc-windows-msvc]
+pkg-url = "{ repo }/releases/download/v{ version }/{ name }-{ target }-v{ version }.zip"
+pkg-fmt = "zip"
