@@ -22,7 +22,8 @@ pub(crate) fn initialize(level: Level) -> Result<()> {
         .with_level(true)
         .with_ansi(true)
         .with_target(false)
-        .with_timer(UtcTime::new(Iso8601::DEFAULT));
+        .with_timer(UtcTime::new(Iso8601::DEFAULT))
+        .with_ansi_sanitization(false);
     let filter_layer = LevelFilter::from(level);
     Ok(registry().with(format).with(filter_layer).try_init()?)
 }
