@@ -215,14 +215,13 @@ async fn create_issue(
 }
 
 fn parse(output: &str) -> BTreeMap<String, (String, Rustsec)> {
-    let mut splits: Vec<String> = output.split("\n\n").map(str::to_string).collect();
-
-    splits[0] = splits[0].lines().skip(4).collect::<Vec<&str>>().join("\n");
-
-    splits
-        .iter()
-        .map(|x| (x, parse_rustsec(x)))
-        .map(|(s, x)| (x.id.clone(), ((*s).clone(), x)))
+    output
+        .split("\n\n")
+        .filter(|s| !s.trim().is_empty())
+        .map(|s| {
+            let rustsec = parse_rustsec(s);
+            (rustsec.id.clone(), (s.to_string(), rustsec))
+        })
         .collect()
 }
 
