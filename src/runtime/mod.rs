@@ -39,6 +39,7 @@ use tracing::{error, info, trace};
 pub(crate) fn run() -> Result<()> {
     let config = Config::from_env()?;
     initialize(config.level)?;
+    info!("Auditing repository: {}", config.owner_repo);
     if check_rustc_version(&version_meta()?)? {
         trace!("rustc version check successful");
         match check_audit("cargo audit --version") {
