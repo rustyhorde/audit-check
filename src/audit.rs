@@ -78,3 +78,60 @@ fn handle_status(exit_status: ExitStatus, tx: Sender<i32>) -> Result<()> {
     drop(tx);
     Ok(())
 }
+
+#[cfg(test)]
+mod test {
+    use super::{handle_status, handle_stderr, handle_stdout};
+    use std::{
+        process::{Command, Stdio},
+        sync::mpsc::channel,
+    };
+
+    #[test]
+    fn handle_stdout_works() -> anyhow::Result<()> {
+        let mut child = Command::new("echo")
+            .arg("hello")
+            .stdout(Stdio::piped())
+            .spawn()?;
+        let stdout = child.stdout.take().unwrap();
+        let (tx, rx) = channel();
+        handle_stdout(stdout, &tx)?;
+        drop(tx);
+        drop(child.wait());
+        assert_eq!(rx.recv()?, "hello");
+        Ok(())
+    }
+
+    #[test]
+    fn handle_stderr_works() -> anyhow::Result<()> {
+        let mut child = Command::new("sh")
+            .args(["-c", "echo err >&2"])
+            .stderr(Stdio::piped())
+            .spawn()?;
+        let stderr = child.stderr.take().unwrap();
+        let (tx, rx) = channel();
+        handle_stderr(stderr, &tx)?;
+        drop(tx);
+        drop(child.wait());
+        assert_eq!(rx.recv()?, "err");
+        Ok(())
+    }
+
+    #[test]
+    fn handle_status_success() -> anyhow::Result<()> {
+        let status = Command::new("true").status()?;
+        let (tx, rx) = channel();
+        handle_status(status, tx)?;
+        assert_eq!(rx.recv()?, 0);
+        Ok(())
+    }
+
+    #[test]
+    fn handle_status_failure() -> anyhow::Result<()> {
+        let status = Command::new("false").status()?;
+        let (tx, rx) = channel();
+        handle_status(status, tx)?;
+        assert_eq!(rx.recv()?, 1);
+        Ok(())
+    }
+}

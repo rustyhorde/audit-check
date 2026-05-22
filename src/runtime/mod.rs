@@ -275,7 +275,10 @@ fn generate_body(rustsec_map: &BTreeMap<String, (String, Rustsec)>) -> String {
 
 #[cfg(test)]
 mod test {
-    use super::{generate_title, parse};
+    use super::{
+        generate_body, generate_title, parse, receive_code, receive_stderr, receive_stdout,
+    };
+    use std::sync::mpsc;
 
     const TEST_RUSTSEC: &str = r"Crate:     aovec
 Version:   1.1.0
@@ -337,5 +340,50 @@ smallvec 0.4.5
             "RUSTSEC-2018-0018, RUSTSEC-2020-0099, RUSTSEC-2021-0065, RUSTSEC-2022-0040",
             generate_title(&rustsec_map)
         );
+    }
+
+    #[test]
+    fn generate_body_works() {
+        let rustsec_map = parse(TEST_RUSTSEC);
+        let body = generate_body(&rustsec_map);
+        assert!(body.contains("RUSTSEC-2018-0018"));
+        assert!(body.contains("RUSTSEC-2020-0099"));
+        assert!(body.contains("RUSTSEC-2021-0065"));
+        assert!(body.contains("RUSTSEC-2022-0040"));
+    }
+
+    #[test]
+    fn receive_stdout_works() {
+        let (tx, rx) = mpsc::channel();
+        tx.send("line1".to_string()).unwrap();
+        tx.send("line2".to_string()).unwrap();
+        drop(tx);
+        let result = receive_stdout(&rx);
+        assert_eq!(result, vec!["line1", "line2"]);
+    }
+
+    #[test]
+    fn receive_stderr_works() {
+        let (tx, rx) = mpsc::channel();
+        tx.send("error1".to_string()).unwrap();
+        drop(tx);
+        let result = receive_stderr(&rx);
+        assert_eq!(result, vec!["error1"]);
+    }
+
+    #[test]
+    fn receive_code_works() {
+        let (tx, rx) = mpsc::channel();
+        tx.send(42i32).unwrap();
+        let result = receive_code(&rx);
+        assert_eq!(result, 42);
+    }
+
+    #[test]
+    fn receive_code_disconnected_returns_minus_one() {
+        let (tx, rx) = mpsc::channel::<i32>();
+        drop(tx);
+        let result = receive_code(&rx);
+        assert_eq!(result, -1);
     }
 }
