@@ -14,3 +14,16 @@ use std::any::Any;
 pub(crate) fn handle_join_error(_e: Box<dyn Any + Send>) -> Error {
     AuditCheckError::Join.into()
 }
+
+#[cfg(test)]
+mod test {
+    use super::handle_join_error;
+    use std::any::Any;
+
+    #[test]
+    fn handle_join_error_returns_join_error() {
+        let boxed: Box<dyn Any + Send> = Box::new(());
+        let err = handle_join_error(boxed);
+        assert_eq!(err.to_string(), "Error joining thread handle");
+    }
+}

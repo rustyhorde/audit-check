@@ -27,3 +27,15 @@ pub(crate) fn initialize(level: Level) -> Result<()> {
     let filter_layer = LevelFilter::from(level);
     Ok(registry().with(format).with(filter_layer).try_init()?)
 }
+
+#[cfg(test)]
+mod test {
+    use super::initialize;
+    use tracing::Level;
+
+    #[test]
+    fn initialize_does_not_panic() {
+        // try_init returns TryInitError if a subscriber is already set (acceptable in tests)
+        drop(initialize(Level::INFO));
+    }
+}

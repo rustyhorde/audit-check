@@ -9,7 +9,7 @@ inputs:
     required: false
     default: 'warnings'
   level:
-    description: 'set the tracing output level: TRACE,INFO,WARN,ERROR,FAIL'
+    description: 'set the tracing output level: TRACE,DEBUG,INFO,WARN,ERROR'
     required: false
     default: 'INFO'
   create_issue:
@@ -18,7 +18,7 @@ inputs:
     default: 'false'
 runs:
   using: 'docker'
-  image: 'Dockerfile'
+  image: 'docker://ghcr.io/rustyhorde/audit-check:latest'
   args:
     - ${{ inputs.token }}
     - ${{ inputs.deny }}

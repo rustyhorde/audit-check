@@ -49,3 +49,117 @@ fn input_deny() -> String {
 fn input_create_issue() -> String {
     env::var("INPUT_CREATE_ISSUE").unwrap_or_else(|_| "false".to_string())
 }
+
+#[cfg(test)]
+#[allow(unsafe_code)]
+mod test {
+    use super::Config;
+    use std::sync::{LazyLock, Mutex};
+
+    static ENV_MUTEX: LazyLock<Mutex<()>> = LazyLock::new(|| Mutex::new(()));
+
+    #[test]
+    fn config_defaults() {
+        let _lock = ENV_MUTEX.lock().unwrap();
+        unsafe {
+            std::env::set_var("INPUT_TOKEN", "tok");
+            std::env::set_var("GITHUB_REPOSITORY", "owner/repo");
+            std::env::remove_var("INPUT_LEVEL");
+            std::env::remove_var("INPUT_DENY");
+            std::env::remove_var("INPUT_CREATE_ISSUE");
+        }
+        let config = Config::from_env().unwrap();
+        assert_eq!(config.token, "tok");
+        assert_eq!(config.owner_repo, "owner/repo");
+        assert_eq!(config.deny, "warnings");
+        assert_eq!(config.level, tracing::Level::INFO);
+        assert!(!config.create_issue);
+        unsafe {
+            std::env::remove_var("INPUT_TOKEN");
+            std::env::remove_var("GITHUB_REPOSITORY");
+        }
+    }
+
+    #[test]
+    fn config_all_vars() {
+        let _lock = ENV_MUTEX.lock().unwrap();
+        unsafe {
+            std::env::set_var("INPUT_TOKEN", "mytoken");
+            std::env::set_var("GITHUB_REPOSITORY", "org/project");
+            std::env::set_var("INPUT_LEVEL", "DEBUG");
+            std::env::set_var("INPUT_DENY", "unsound");
+            std::env::set_var("INPUT_CREATE_ISSUE", "true");
+        }
+        let config = Config::from_env().unwrap();
+        assert_eq!(config.token, "mytoken");
+        assert_eq!(config.owner_repo, "org/project");
+        assert_eq!(config.deny, "unsound");
+        assert_eq!(config.level, tracing::Level::DEBUG);
+        assert!(config.create_issue);
+        unsafe {
+            std::env::remove_var("INPUT_TOKEN");
+            std::env::remove_var("GITHUB_REPOSITORY");
+            std::env::remove_var("INPUT_LEVEL");
+            std::env::remove_var("INPUT_DENY");
+            std::env::remove_var("INPUT_CREATE_ISSUE");
+        }
+    }
+
+    #[test]
+    fn config_missing_token_fails() {
+        let _lock = ENV_MUTEX.lock().unwrap();
+        unsafe {
+            std::env::remove_var("INPUT_TOKEN");
+            std::env::set_var("GITHUB_REPOSITORY", "owner/repo");
+        }
+        assert!(Config::from_env().is_err());
+        unsafe {
+            std::env::remove_var("GITHUB_REPOSITORY");
+        }
+    }
+
+    #[test]
+    fn config_missing_repo_fails() {
+        let _lock = ENV_MUTEX.lock().unwrap();
+        unsafe {
+            std::env::set_var("INPUT_TOKEN", "tok");
+            std::env::remove_var("GITHUB_REPOSITORY");
+        }
+        assert!(Config::from_env().is_err());
+        unsafe {
+            std::env::remove_var("INPUT_TOKEN");
+        }
+    }
+
+    #[test]
+    fn config_invalid_level_fails() {
+        let _lock = ENV_MUTEX.lock().unwrap();
+        unsafe {
+            std::env::set_var("INPUT_TOKEN", "tok");
+            std::env::set_var("GITHUB_REPOSITORY", "owner/repo");
+            std::env::set_var("INPUT_LEVEL", "INVALID");
+        }
+        assert!(Config::from_env().is_err());
+        unsafe {
+            std::env::remove_var("INPUT_TOKEN");
+            std::env::remove_var("GITHUB_REPOSITORY");
+            std::env::remove_var("INPUT_LEVEL");
+        }
+    }
+
+    #[test]
+    fn config_invalid_create_issue_fails() {
+        let _lock = ENV_MUTEX.lock().unwrap();
+        unsafe {
+            std::env::set_var("INPUT_TOKEN", "tok");
+            std::env::set_var("GITHUB_REPOSITORY", "owner/repo");
+            std::env::set_var("INPUT_CREATE_ISSUE", "yes");
+        }
+        assert!(Config::from_env().is_err());
+        unsafe {
+            std::env::remove_var("INPUT_TOKEN");
+            std::env::remove_var("GITHUB_REPOSITORY");
+            std::env::remove_var("INPUT_CREATE_ISSUE");
+        }
+    }
+}
