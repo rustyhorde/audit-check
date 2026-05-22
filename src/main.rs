@@ -17,7 +17,7 @@
 //!    `INPUT_LEVEL`, `INPUT_CREATE_ISSUE`, `GITHUB_REPOSITORY`).
 //! 2. Verifies the Rust toolchain meets the MSRV and that `cargo audit` is installed.
 //! 3. Spawns `cargo audit` as a subprocess, streaming stdout and stderr in real time.
-//! 4. Parses RustSec advisory output; if vulnerabilities are found and
+//! 4. Parses `RustSec` advisory output; if vulnerabilities are found and
 //!    `INPUT_CREATE_ISSUE=true`, posts a structured GitHub issue via the Issues API.
 //!
 //! [`cargo audit`]: https://github.com/rustsec/rustsec/tree/main/cargo-audit
