@@ -1,0 +1,39 @@
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    tags-ignore:
+      - "*"
+  pull_request:
+  schedule:
+    - cron: "22 3 * * *"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+name: 💣 Audit 💣
+
+jobs:
+  audit-check:
+    runs-on: ubuntu-latest
+    name: 💣 Audit 💣
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: ✅ Checkout ✅
+        # v6.0.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - name: 💣 cargo audit 💣
+        # master
+        uses: rustyhorde/audit-check@f4648bf40252eaebac4db1c36a69cff38269589e
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          deny: warnings
+          create_issue: ${{ github.event_name != 'pull_request' && 'true' || 'false' }}
