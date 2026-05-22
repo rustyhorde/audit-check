@@ -9,7 +9,7 @@
 use anyhow::Result;
 use rustc_version::{Version, VersionMeta};
 
-pub(crate) const MSRV: &str = "1.85.0";
+pub(crate) const MSRV: &str = "1.88.0";
 
 pub(crate) fn check_rustc_version(meta: &VersionMeta) -> Result<bool> {
     Ok(meta.semver >= Version::parse(MSRV)?)
