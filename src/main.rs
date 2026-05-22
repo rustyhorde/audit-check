@@ -6,17 +6,34 @@
 // option. All files in the project carrying such notice may not be copied,
 // modified, or distributed except according to those terms.
 
-//! audit-check
+//! # audit-check
 //!
+//! A GitHub Action that runs [`cargo audit`] inside a Docker container and
+//! optionally creates a GitHub issue when [RustSec] advisories are found.
+//!
+//! ## Behaviour
+//!
+//! 1. Reads configuration from environment variables (`INPUT_TOKEN`, `INPUT_DENY`,
+//!    `INPUT_LEVEL`, `INPUT_CREATE_ISSUE`, `GITHUB_REPOSITORY`).
+//! 2. Verifies the Rust toolchain meets the MSRV and that `cargo audit` is installed.
+//! 3. Spawns `cargo audit` as a subprocess, streaming stdout and stderr in real time.
+//! 4. Parses `RustSec` advisory output; if vulnerabilities are found and
+//!    `INPUT_CREATE_ISSUE=true`, posts a structured GitHub issue via the Issues API.
+//!
+//! [`cargo audit`]: https://github.com/rustsec/rustsec/tree/main/cargo-audit
+//! [RustSec]: https://rustsec.org
 
 // rustc lints
 #![cfg_attr(
     all(feature = "unstable", nightly),
     feature(
+        explicit_tail_calls,
+        link_llvm_intrinsics,
         multiple_supertrait_upcastable,
         must_not_suspend,
         non_exhaustive_omitted_patterns_lint,
         strict_provenance_lints,
+        supertrait_item_shadowing,
         unqualified_local_imports,
     )
 )]
@@ -24,10 +41,14 @@
 #![cfg_attr(
     nightly,
     deny(
+        aarch64_softfloat_neon,
         absolute_paths_not_starting_with_crate,
-        ambiguous_glob_imports,
+        ambiguous_derive_helpers,
+        ambiguous_glob_imported_traits,
         ambiguous_glob_reexports,
+        ambiguous_import_visibilities,
         ambiguous_negative_literals,
+        ambiguous_panic_imports,
         ambiguous_wide_pointer_comparisons,
         anonymous_parameters,
         array_into_iter,
@@ -42,16 +63,17 @@
         coherence_leak_check,
         confusable_idents,
         const_evaluatable_unchecked,
+        const_item_interior_mutations,
         const_item_mutation,
+        dangling_pointers_from_locals,
         dangling_pointers_from_temporaries,
         dead_code,
-        dependency_on_unit_never_type_fallback,
+        dead_code_pub_in_binary,
         deprecated,
         deprecated_in_future,
         deprecated_safe_2024,
         deprecated_where_clause_location,
         deref_into_dyn_supertrait,
-        deref_nullptr,
         double_negations,
         drop_bounds,
         dropping_copy_types,
@@ -64,10 +86,12 @@
         explicit_outlives_requirements,
         exported_private_dependencies,
         ffi_unwind_calls,
+        float_literal_f32_fallback,
         forbidden_lint_groups,
         forgetting_copy_types,
         forgetting_references,
         for_loops_over_fallibles,
+        function_casts_as_integer,
         function_item_references,
         hidden_glob_reexports,
         if_let_rescope,
@@ -75,10 +99,12 @@
         impl_trait_redundant_captures,
         improper_ctypes,
         improper_ctypes_definitions,
+        improper_gpu_kernel_arg,
         inline_no_sanitize,
-        internal_features,
+        integer_to_ptr_transmutes,
+        internal_eq_trait_method_impls,
+        invalid_doc_attributes,
         invalid_from_utf8,
-        invalid_macro_export_arguments,
         invalid_nan_comparisons,
         invalid_value,
         irrefutable_let_patterns,
@@ -86,20 +112,22 @@
         keyword_idents_2024,
         large_assignments,
         late_bound_lifetime_arguments,
-        legacy_derive_helpers,
         let_underscore_drop,
         macro_use_extern_crate,
+        malformed_diagnostic_attributes,
+        malformed_diagnostic_format_literals,
         map_unit_fn,
         meta_variable_misuse,
         mismatched_lifetime_syntaxes,
+        misplaced_diagnostic_attributes,
         missing_abi,
         missing_copy_implementations,
         missing_debug_implementations,
         missing_docs,
+        missing_gpu_kernel_export_name,
         missing_unsafe_on_extern,
         mixed_script_confusables,
         named_arguments_used_positionally,
-        never_type_fallback_flowing_into_unsafe,
         no_mangle_generic_items,
         non_ascii_idents,
         non_camel_case_types,
@@ -111,7 +139,6 @@
         non_upper_case_globals,
         noop_method_call,
         opaque_hidden_inferred_bound,
-        out_of_scope_macro_calls,
         overlapping_range_endpoints,
         path_statements,
         private_bounds,
@@ -123,7 +150,8 @@
         refining_impl_trait_internal,
         refining_impl_trait_reachable,
         renamed_and_removed_lints,
-        repr_transparent_non_zst_fields,
+        repr_c_enums_larger_than_int,
+        rtsan_nonblocking_async,
         rust_2021_incompatible_closure_captures,
         rust_2021_incompatible_or_patterns,
         rust_2021_prefixes_incompatible_syntax,
@@ -132,7 +160,6 @@
         rust_2024_incompatible_pat,
         rust_2024_prelude_collisions,
         self_constructor_from_outer_item,
-        semicolon_in_expressions_from_macros,
         single_use_lifetimes,
         special_module_name,
         stable_features,
@@ -150,13 +177,14 @@
         unexpected_cfgs,
         unfulfilled_lint_expectations,
         ungated_async_fn_track_caller,
-        uninhabited_static,
         unit_bindings,
+        unknown_diagnostic_attributes,
         unknown_lints,
-        unknown_or_malformed_diagnostic_attributes,
         unnameable_test_items,
         unnameable_types,
+        unnecessary_transmutes,
         unpredictable_function_pointer_comparisons,
+        unreachable_cfg_select_predicates,
         unreachable_code,
         unreachable_patterns,
         unreachable_pub,
@@ -165,6 +193,7 @@
         unsafe_op_in_unsafe_fn,
         unstable_name_collisions,
         unstable_syntax_pre_expansion,
+        unsupported_calling_conventions,
         unused_allocation,
         unused_assignments,
         unused_associated_type_bounds,
@@ -188,6 +217,7 @@
         unused_results,
         unused_unsafe,
         unused_variables,
+        unused_visibilities,
         useless_ptr_null_checks,
         uses_power_alignment,
         variant_size_differences,
@@ -197,22 +227,26 @@
 // If nightly and unstable, allow `incomplete_features` and `unstable_features`
 #![cfg_attr(
     all(feature = "unstable", nightly),
-    allow(incomplete_features, unstable_features)
+    allow(internal_features, incomplete_features, unstable_features)
 )]
 // If nightly and not unstable, deny `incomplete_features` and `unstable_features`
 #![cfg_attr(
     all(not(feature = "unstable"), nightly),
-    deny(incomplete_features, unstable_features)
+    deny(internal_features, incomplete_features, unstable_features)
 )]
 // The unstable lints
 #![cfg_attr(
     all(feature = "unstable", nightly),
     deny(
+        deprecated_llvm_intrinsic,
         fuzzy_provenance_casts,
         lossy_provenance_casts,
         multiple_supertrait_upcastable,
         must_not_suspend,
         non_exhaustive_omitted_patterns,
+        resolving_to_items_shadowing_supertrait_items,
+        shadowing_supertrait_items,
+        tail_call_track_caller,
         unqualified_local_imports,
     )
 )]
@@ -226,10 +260,17 @@
         rustdoc::broken_intra_doc_links,
         rustdoc::invalid_codeblock_attributes,
         rustdoc::invalid_html_tags,
+        rustdoc::invalid_rust_codeblocks,
         rustdoc::missing_crate_level_docs,
         rustdoc::private_doc_tests,
         rustdoc::private_intra_doc_links,
+        rustdoc::redundant_explicit_links,
+        rustdoc::unescaped_backticks,
     )
+)]
+#![cfg_attr(
+    all(nightly, feature = "unstable"),
+    deny(rustdoc::missing_doc_code_examples)
 )]
 #![cfg_attr(all(docsrs), feature(doc_cfg))]
 #![cfg_attr(coverage_nightly, feature(coverage_attribute))]
