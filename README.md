@@ -1,8 +1,11 @@
 # audit-check
 
-[![CI](https://github.com/rustyhorde/audit-check/actions/workflows/cargo-matrix.yml/badge.svg?branch=master)](https://github.com/rustyhorde/audit-check/actions/workflows/cargo-matrix.yml)
-[![crates.io](https://img.shields.io/crates/v/audit-check)](https://crates.io/crates/audit-check)
-[![license](https://img.shields.io/crates/l/audit-check)](LICENSE-MIT)
+[![Crates.io](https://img.shields.io/crates/v/audit-check.svg)](https://crates.io/crates/audit-check)
+[![Crates.io](https://img.shields.io/crates/l/audit-check.svg)](https://crates.io/crates/audit-check)
+[![Crates.io](https://img.shields.io/crates/d/audit-check.svg)](https://crates.io/crates/audit-check)
+
+[![codecov](https://codecov.io/gh/rustyhorde/audit-check/graph/badge.svg?token=4UQS7D03BU)](https://codecov.io/gh/rustyhorde/audit-check)
+[![CI](https://github.com/rustyhorde/audit-check/actions/workflows/audit.yml/badge.svg)](https://github.com/rustyhorde/audit-check/actions)
 
 A GitHub Action that runs [`cargo audit`](https://github.com/rustsec/rustsec/tree/main/cargo-audit) on your Rust project and optionally opens a GitHub issue when RustSec advisories are found.
 
