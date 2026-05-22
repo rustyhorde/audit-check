@@ -125,3 +125,95 @@ jobs:
           generate_release_notes: true
           prerelease: ${{ contains(github.ref_name, '-rc') }}
           files: dist/*
+
+  publish-docker:
+    name: 🐳 Publish Docker Image 🐳
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    steps:
+      - name: ✅ Checkout ✅
+        # v6.0.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - name: ⬇️ Download audit-check musl artifact ⬇️
+        # v8.0.1
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: binary-x86_64-unknown-linux-musl
+          path: dist/
+
+      - name: 📦 Extract audit-check binary 📦
+        run: |
+          mkdir -p binary
+          tar xzf dist/audit-check-x86_64-unknown-linux-musl-*.tar.gz -C dist/
+          mv dist/audit-check binary/audit-check
+        shell: bash
+
+      - name: ⬇️ Download cargo-audit musl binary ⬇️
+        run: |
+          RELEASE=$(curl -s \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/rustsec/rustsec/releases" \
+            | jq -r '[.[] | select(.tag_name | startswith("cargo-audit/"))][0].tag_name')
+          VERSION="${RELEASE#cargo-audit/v}"
+          URL="https://github.com/rustsec/rustsec/releases/download/cargo-audit%2Fv${VERSION}/cargo-audit-x86_64-unknown-linux-musl-v${VERSION}.tgz"
+          curl -fL "$URL" -o cargo-audit.tgz
+          mkdir -p cargo-audit-extract
+          tar xzf cargo-audit.tgz -C cargo-audit-extract
+          find cargo-audit-extract -type f -name 'cargo-audit' -exec mv {} binary/cargo-audit \;
+        shell: bash
+
+      - name: 🐳 Set up Docker Buildx 🐳
+        # v4.0.0
+        uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd
+
+      - name: 🔑 Log in to GHCR 🔑
+        # v4.1.0
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🏷️ Extract Docker metadata 🏷️
+        id: meta
+        # v6.0.0
+        uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern=v{{major}}
+            type=raw,value=latest,enable=${{ !contains(github.ref_name, '-rc') }}
+
+      - name: 🐳 Build and push Docker image 🐳
+        # v7.2.0
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  update-major-tag:
+    name: 🏷️ Update Major Version Tag 🏷️
+    needs: release
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.ref_name, '-rc') }}
+    permissions:
+      contents: write
+    steps:
+      - name: ✅ Checkout ✅
+        # v6.0.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - name: 🏷️ Move major version tag 🏷️
+        run: |
+          major="v$(echo '${{ github.ref_name }}' | sed 's/^v//' | cut -d. -f1)"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -f "$major" ${{ github.sha }}
+          git push origin -f "refs/tags/$major"

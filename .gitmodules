@@ -1,3 +1,0 @@
-[submodule "rustsec"]
-	path = rustsec
-	url = https://github.com/rustsec/rustsec.git

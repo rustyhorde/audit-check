@@ -18,7 +18,7 @@ inputs:
     default: 'false'
 runs:
   using: 'docker'
-  image: 'Dockerfile'
+  image: 'docker://ghcr.io/rustyhorde/audit-check:latest'
   args:
     - ${{ inputs.token }}
     - ${{ inputs.deny }}
