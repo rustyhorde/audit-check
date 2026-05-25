@@ -19,7 +19,7 @@ unstable = []
 [dependencies]
 anyhow = "1.0.102"
 regex = "1.12.3"
-reqwest = { version = "0.13.2", default-features = false, features = ["rustls", "brotli", "json"] }
+reqwest = { version = "0.13.4", default-features = false, features = ["rustls", "brotli", "json"] }
 rustc_version = "0.4.1"
 serde = { version = "1.0.228", features = ["derive"] }
 thiserror = "2.0.18"
