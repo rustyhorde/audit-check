@@ -227,10 +227,11 @@ fn parse(output: &str) -> BTreeMap<String, (String, Rustsec)> {
 }
 
 fn parse_rustsec(rustsec_str: &str) -> Rustsec {
-    let id = parse_caps(&ID_REGEX, rustsec_str, "No ID");
-    let url = parse_caps(&URL_REGEX, rustsec_str, "No URL");
     let krate = parse_caps(&CRATE_REGEX, rustsec_str, "No Crate");
     let version = parse_caps(&VERSION_REGEX, rustsec_str, "No Version");
+    let id_fallback = format!("{krate} {version}");
+    let id = parse_caps(&ID_REGEX, rustsec_str, &id_fallback);
+    let url = parse_caps(&URL_REGEX, rustsec_str, "No URL");
     let warning = parse_caps(&WARNING_REGEX, rustsec_str, "No Warning");
     let title = parse_caps(&TITLE_REGEX, rustsec_str, "No Title");
     let date = parse_caps(&DATE_REGEX, rustsec_str, "No Date");
@@ -351,6 +352,27 @@ smallvec 0.4.5
         assert!(body.contains("RUSTSEC-2020-0099"));
         assert!(body.contains("RUSTSEC-2021-0065"));
         assert!(body.contains("RUSTSEC-2022-0040"));
+    }
+
+    const TEST_YANKED: &str = r"Crate:     bitflags
+Version:   2.12.0
+Warning:   yanked
+Dependency tree:
+bitflags 2.12.0
+└── some-crate 1.0.0
+";
+
+    #[test]
+    fn parse_yanked_works() {
+        let map = parse(TEST_YANKED);
+        assert_eq!(1, map.len());
+        assert!(map.contains_key("bitflags 2.12.0"));
+    }
+
+    #[test]
+    fn generate_title_yanked_works() {
+        let map = parse(TEST_YANKED);
+        assert_eq!("bitflags 2.12.0", generate_title(&map));
     }
 
     #[test]
