@@ -11,7 +11,7 @@ name = "audit-check"
 readme = "README.md"
 repository = "https://github.com/rustyhorde/audit-check"
 rust-version = "1.88.0"
-version = "1.0.0"
+version = "1.0.1"
 
 [features]
 unstable = []
