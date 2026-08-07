@@ -128,7 +128,6 @@
         missing_unsafe_on_extern,
         mixed_script_confusables,
         named_arguments_used_positionally,
-        no_mangle_generic_items,
         non_ascii_idents,
         non_camel_case_types,
         non_contiguous_range_endpoints,
