@@ -252,10 +252,7 @@ fn parse_rustsec(rustsec_str: &str) -> Rustsec {
 fn parse_caps(regex: &Regex, rustsec_str: &str, default: &str) -> String {
     regex
         .captures(rustsec_str)
-        .map_or_else(
-            || default,
-            |caps| caps.get(1).map_or(default, |m| m.as_str()),
-        )
+        .map_or(default, |caps| caps.get(1).map_or(default, |m| m.as_str()))
         .to_string()
 }
 
